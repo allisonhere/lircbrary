@@ -1,0 +1,17 @@
+{
+  "download_dir": "/home/allie/downloads",
+  "library_dir": "/home/allie/temp/",
+  "temp_dir": "/home/allie/temp/",
+  "max_download_bytes": null,
+  "allowed_bots": [
+    "Search"
+  ],
+  "irc_server": "irc.irchighway.net",
+  "irc_port": 6667,
+  "irc_ssl": false,
+  "irc_ssl_verify": false,
+  "irc_channel": "#ebooks",
+  "irc_nick": "sultry3vixen",
+  "irc_realname": "sultry5vixen",
+  "theme": "dark"
+}
