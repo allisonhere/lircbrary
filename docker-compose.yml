@@ -4,6 +4,8 @@ services:
   redis:
     image: redis:7
     restart: unless-stopped
+    ports:
+      - "6379:6379"
 
   api:
     build:
@@ -21,8 +23,12 @@ services:
       dockerfile: Dockerfile
     command: ["python", "-m", "worker"]
     env_file: .env
+    environment:
+      # Use host network for outbound DCC; point Redis to host-mapped port.
+      - REDIS_URL=redis://127.0.0.1:6379/0
     volumes:
       - ./data:/data
+    network_mode: host
 
   frontend:
     build:
