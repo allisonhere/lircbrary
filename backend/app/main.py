@@ -85,13 +85,21 @@ def create_app(settings: Settings = None) -> FastAPI:
 
     @app.post("/search", response_model=SearchResponse)
     async def search(req: SearchRequest) -> SearchResponse:
+        q = (req.query or "").strip()
+        a = (req.author or "").strip() or None
+        # Prefer persistent session if connected
+        if session.connected:
+            try:
+                results = session.search(q, a)
+                return SearchResponse(results=results)
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
         client = IrcClient()
         try:
-            results = await client.search(req.query, req.author)
+            results = await client.search(q, a)
+            return SearchResponse(results=results)
         except Exception as e:
-            # Surface error so UI can display it
             raise HTTPException(status_code=500, detail=str(e))
-        return SearchResponse(results=results)
 
     @app.post("/download", response_model=DownloadResponse)
     async def download(req: DownloadRequest, queue: Queue = Depends(get_queue)) -> DownloadResponse:

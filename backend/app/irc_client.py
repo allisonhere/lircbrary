@@ -43,6 +43,17 @@ class IrcClient:
         self.search_command = "@search {query}"
         self.download_command = "@download {id}"
 
+    def sanitize_query(self, query: str, author: Optional[str] = None) -> str:
+        q = (query or "").strip()
+        # drop a trailing extension like .epub/.pdf/etc.
+        q = re.sub(r"\.[a-zA-Z0-9]{1,5}$", "", q)
+        # remove punctuation that the bot may treat as syntax errors
+        q = re.sub(r"[^\\w\\s'\\-]", " ", q)
+        if author:
+            q = f"{q} {author}".strip()
+        q = re.sub(r"\\s+", " ", q).strip()
+        return q
+
     def _connect(self, nick_override: Optional[str] = None) -> Tuple[irc.client.Reactor, irc.client.ServerConnection]:
         irc.client.ServerConnection.buffer_class = jsbuffer.LenientDecodingLineBuffer
         reactor = irc.client.Reactor()
@@ -233,7 +244,7 @@ class IrcClient:
 
         server.add_global_handler("privmsg", on_privmsg)
         server.add_global_handler("ctcp", on_ctcp)
-        search_text = query if not author else f"{query} {author}"
+        search_text = self.sanitize_query(query, author)
         append_log(f"SEARCH {search_text}")
         server.privmsg(target, self.search_command.format(query=search_text))
         start = time.time()

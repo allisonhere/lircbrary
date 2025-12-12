@@ -133,7 +133,7 @@ class IrcSession:
         for name, handler in handlers:
             server.add_global_handler(name, handler)
 
-        search_text = req["query"] if not req.get("author") else f"{req['query']} {req['author']}"
+        search_text = self.client.sanitize_query(req["query"], req.get("author"))
         append_log(f"SEARCH {search_text}")
         server.privmsg(self.client.cfg.irc_channel or self.client.settings.irc_channel, self.client.search_command.format(query=search_text))
         # Stash holders so we can return parsed results on completion
