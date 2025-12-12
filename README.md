@@ -13,6 +13,14 @@ Web UI + backend to search `irc.highway.net/#ebooks`, queue DCC downloads, and f
 2. `docker-compose up --build`
 3. Open http://localhost:3000 (frontend) and hit Search to exercise the mock flow.
 
+## Install on another machine
+- Install Docker + Docker Compose.
+- Clone this repo (or copy the folder) onto the target box.
+- Copy `.env.example` to `.env` and fill in IRC creds plus local paths for `DOWNLOAD_DIR`, `LIBRARY_DIR`, and `TEMP_DIR`.
+- Update the bind mounts in `docker-compose.yml` if the remote machine uses different paths (defaults: `/home/allie/temp` and `/home/allie/downloads`).
+- From the repo root, run `docker-compose up --build -d`.
+- Open `http://<host>:3000` in a browser (API at `http://<host>:8000`). Logs land in the `data` volume and the download/library folders you configured.
+
 ## Configuration
 Env vars (see `.env.example`):
 - `IRC_SERVER`, `IRC_PORT`, `IRC_CHANNEL`, `IRC_NICK`, `IRC_REALNAME`
