@@ -8,9 +8,7 @@ services:
       - "6379:6379"
 
   api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/allisonhere/lircbrary-backend:latest
     env_file: .env
     environment:
       - REDIS_URL=redis://redis:6379/0
@@ -23,9 +21,7 @@ services:
       - "8000:8000"
 
   worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/allisonhere/lircbrary-backend:latest
     command: ["python", "-m", "worker"]
     env_file: .env
     environment:
@@ -38,9 +34,7 @@ services:
     network_mode: host
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/allisonhere/lircbrary-frontend:latest
     environment:
       - VITE_API_URL=http://localhost:8000
     ports:
