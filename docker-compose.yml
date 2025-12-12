@@ -29,7 +29,8 @@ services:
       - /home/allie/downloads:/downloads
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
     ports:
-      - "8000:8000"
+      # Adjust host port if 8000 is occupied (default 8000:8000; example below)
+      - "8800:8000"
 
   worker:
     image: docker.io/alliehere/lircbrary-backend:latest
@@ -58,7 +59,7 @@ services:
   frontend:
     image: docker.io/alliehere/lircbrary-frontend:latest
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:8800
     ports:
       # Adjust host port if 3000 is occupied (e.g., use 3300:3000)
       - "3000:3000"
