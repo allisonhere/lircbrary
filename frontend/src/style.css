@@ -1,23 +1,23 @@
 :root {
-  --bg: radial-gradient(120% 120% at 10% 20%, #f2f7ff, #dfe7ff 35%, #f6f6ff 60%, #ffffff 100%);
+  --bg: radial-gradient(120% 120% at 10% 20%, #f6f2ff, #e9dcff 35%, #f9f3ff 60%, #ffffff 100%);
   --card-bg: #ffffff;
   --text: #0e1116;
   --muted: #43506b;
   --border: #e3e7ef;
-  --input-bg: #f7f9ff;
-  --shadow: 0 10px 30px rgba(33, 56, 100, 0.08);
-  --accent: linear-gradient(135deg, #0f67ff, #00b0ff);
+  --input-bg: #f9f6ff;
+  --shadow: 0 10px 30px rgba(70, 20, 110, 0.08);
+  --accent: linear-gradient(135deg, #7c3aed, #a855f7);
 }
 
 [data-theme="dark"] {
-  --bg: radial-gradient(120% 120% at 10% 20%, #0f1827, #111827 40%, #0d1117 70%, #0b1016 100%);
-  --card-bg: #0f1623;
-  --text: #e9edf5;
-  --muted: #9fb0cf;
-  --border: #1f2a3d;
-  --input-bg: #121c2b;
+  --bg: radial-gradient(120% 120% at 10% 20%, #140c1c, #1b1128 40%, #0f0a15 70%, #0c0812 100%);
+  --card-bg: #120e1a;
+  --text: #f3eaff;
+  --muted: #bfa7e5;
+  --border: #2a1d3d;
+  --input-bg: #151025;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  --accent: linear-gradient(135deg, #4f9cff, #00c2ff);
+  --accent: linear-gradient(135deg, #a855f7, #c084fc);
 }
 
 :root {
@@ -66,7 +66,7 @@ body {
 }
 
 .pill {
-  background: #0f67ff;
+  background: #7c3aed;
   color: white;
   border-radius: 999px;
   padding: 4px 10px;
@@ -146,7 +146,7 @@ button {
 
 button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 25px rgba(15, 103, 255, 0.25);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.25);
 }
 
 button:disabled {
