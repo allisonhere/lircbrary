@@ -22,6 +22,7 @@ class IrcSession:
         self.error: Optional[str] = None
         self.stop_event = threading.Event()
         self.request_q: "queue.Queue[dict]" = queue.Queue()
+        self.active_request: Optional[dict] = None
 
     def connect(self) -> None:
         with self.lock:
@@ -41,28 +42,27 @@ class IrcSession:
             reactor, server = self.client._connect_and_join()  # type: ignore[attr-defined]
             self.connected = True
             append_log("Session connected and idle")
-            active_req: Optional[dict] = None
             handlers: List[tuple] = []
             while not self.stop_event.is_set():
                 # Start next queued search if none active
-                if active_req is None:
+                if self.active_request is None:
                     try:
                         req = self.request_q.get_nowait()
-                        active_req = req
+                        self.active_request = req
                         handlers = self._start_search_request(req, server, reactor)
                     except queue.Empty:
                         pass
                 # Pump IRC events
                 reactor.process_once(timeout=0.2)
                 # Check for timeout on active request
-                if active_req:
-                    started = active_req.get("started")
-                    if started and time.time() - started > self.client.search_timeout:
+                if self.active_request:
+                    started = self.active_request.get("started")
+                    if started and time.time() - started > 60:
                         append_log("Search timeout (session)")
-                        active_req["error"] = "Search timeout"
-                        active_req["done"].set()
+                        self.active_request["error"] = "Search timeout"
+                        self.active_request["done"].set()
                         self._teardown_handlers(server, handlers)
-                        active_req = None
+                        self.active_request = None
                         handlers = []
         except Exception as e:
             append_log(f"Session error: {e}")
@@ -150,6 +150,10 @@ class IrcSession:
     def search(self, query: str, author: Optional[str] = None, timeout: int = 30) -> List[SearchResult]:
         if not self.connected or not self.client:
             raise RuntimeError("IRC session not connected")
+        # Prevent overlapping searches
+        if self.active_request:
+            raise RuntimeError("Search already in progress")
+
         req = {"query": query, "author": author, "done": threading.Event(), "error": None, "results": []}
         self.request_q.put(req)
         done = req["done"].wait(timeout)
