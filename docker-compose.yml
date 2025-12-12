@@ -9,9 +9,20 @@ services:
 
   api:
     image: ghcr.io/allisonhere/lircbrary-backend:latest
-    env_file: .env
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - IRC_SERVER=irc.highway.net
+      - IRC_PORT=6667
+      - IRC_CHANNEL=#ebooks
+      - IRC_NICK=lircbrarybot
+      - IRC_REALNAME=lircbrary
+      - IRC_SSL=false
+      - IRC_SSL_VERIFY=true
+      - DOWNLOAD_DIR=/downloads
+      - LIBRARY_DIR=/downloads
+      - TEMP_DIR=/temp
+      - QUEUE_NAME=lircbrary-jobs
+      - CONFIG_FILE=/data/config.json
     volumes:
       - ./data:/data
       - /home/allie/temp:/temp
@@ -23,10 +34,21 @@ services:
   worker:
     image: ghcr.io/allisonhere/lircbrary-backend:latest
     command: ["python", "-m", "worker"]
-    env_file: .env
     environment:
       # Use host network for outbound DCC; point Redis to host-mapped port.
       - REDIS_URL=redis://127.0.0.1:6379/0
+      - IRC_SERVER=irc.highway.net
+      - IRC_PORT=6667
+      - IRC_CHANNEL=#ebooks
+      - IRC_NICK=lircbrarybot
+      - IRC_REALNAME=lircbrary
+      - IRC_SSL=false
+      - IRC_SSL_VERIFY=true
+      - DOWNLOAD_DIR=/downloads
+      - LIBRARY_DIR=/downloads
+      - TEMP_DIR=/temp
+      - QUEUE_NAME=lircbrary-jobs
+      - CONFIG_FILE=/data/config.json
     volumes:
       - ./data:/data
       - /home/allie/temp:/temp
