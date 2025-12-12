@@ -21,7 +21,7 @@ Web UI + backend to search `irc.highway.net/#ebooks`, queue DCC downloads, and f
 - From the repo root, run `docker-compose up --build -d`.
 - Open `http://<host>:3000` in a browser (API at `http://<host>:8000`). Logs land in the `data` volume and the download/library folders you configured.
 
-### Example docker-compose.yml
+### Example docker-compose.yml (GHCR images)
 ```yaml
 version: "3.9"
 
@@ -33,9 +33,7 @@ services:
       - "6379:6379"
 
   api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/allisonhere/lircbrary-backend:latest
     env_file: .env
     environment:
       - REDIS_URL=redis://redis:6379/0
@@ -48,9 +46,7 @@ services:
       - "8000:8000"
 
   worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/allisonhere/lircbrary-backend:latest
     command: ["python", "-m", "worker"]
     env_file: .env
     environment:
@@ -62,21 +58,24 @@ services:
     network_mode: host
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/allisonhere/lircbrary-frontend:latest
     environment:
       - VITE_API_URL=http://localhost:8000
     ports:
       - "3000:3000"
 ```
 
+### Local build compose (dev)
+If you prefer building locally instead of pulling from GHCR, use `docker-compose.local.yml`:
+```bash
+docker-compose -f docker-compose.local.yml up --build
+```
+
 ### Prebuilt images (GHCR)
 CI pushes images to GitHub Container Registry on every `master` push:
 - Backend/worker: `ghcr.io/allisonhere/lircbrary-backend:latest` (also `:sha-<commit>`)
 - Frontend: `ghcr.io/allisonhere/lircbrary-frontend:latest` (also `:sha-<commit>`)
-
-If you prefer pulling instead of building, swap the `build` sections in the compose example with `image: ghcr.io/allisonhere/lircbrary-backend:latest` for `api`/`worker` and `image: ghcr.io/allisonhere/lircbrary-frontend:latest` for `frontend`. If the GHCR package is private, `docker login ghcr.io -u <github-username> -p <PAT-with-packages-scope>` first.
+If the GHCR package is private, `docker login ghcr.io -u <github-username> -p <PAT-with-packages-scope>` first.
 
 ## Configuration
 Env vars (see `.env.example`):
