@@ -84,6 +84,7 @@ services:
     environment:
       - VITE_API_URL=http://localhost:8000
     ports:
+      # Adjust host port if 3000 is occupied (e.g., use 3300:3000)
       - "3000:3000"
 ```
 
