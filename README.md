@@ -21,7 +21,7 @@ Web UI + backend to search `irc.highway.net/#ebooks`, queue DCC downloads, and f
 - From the repo root, run `docker-compose up --build -d`.
 - Open `http://<host>:3000` in a browser (API at `http://<host>:8000`). Logs land in the `data` volume and the download/library folders you configured.
 
-### Example docker-compose.yml (GHCR images, env baked in)
+### Example docker-compose.yml (Docker Hub images, env baked in)
 ```yaml
 version: "3.9"
 
@@ -33,7 +33,7 @@ services:
       - "6379:6379"
 
   api:
-    image: ghcr.io/allisonhere/lircbrary-backend:latest
+    image: docker.io/alliehere/lircbrary-backend:latest
     environment:
       - REDIS_URL=redis://redis:6379/0
       - IRC_SERVER=irc.highway.net
@@ -57,7 +57,7 @@ services:
       - "8000:8000"
 
   worker:
-    image: ghcr.io/allisonhere/lircbrary-backend:latest
+    image: docker.io/alliehere/lircbrary-backend:latest
     command: ["python", "-m", "worker"]
     environment:
       - REDIS_URL=redis://127.0.0.1:6379/0
@@ -80,7 +80,7 @@ services:
     network_mode: host
 
   frontend:
-    image: ghcr.io/allisonhere/lircbrary-frontend:latest
+    image: docker.io/alliehere/lircbrary-frontend:latest
     environment:
       - VITE_API_URL=http://localhost:8000
     ports:
@@ -93,11 +93,11 @@ If you prefer building locally instead of pulling from GHCR, use `docker-compose
 docker-compose -f docker-compose.local.yml up --build
 ```
 
-### Prebuilt images (GHCR)
-CI pushes images to GitHub Container Registry on every `master` push:
-- Backend/worker: `ghcr.io/allisonhere/lircbrary-backend:latest` (also `:sha-<commit>`)
-- Frontend: `ghcr.io/allisonhere/lircbrary-frontend:latest` (also `:sha-<commit>`)
-If the GHCR package is private, `docker login ghcr.io -u <github-username> -p <PAT-with-packages-scope>` first.
+### Prebuilt images (Docker Hub)
+Pull from Docker Hub (public):
+- Backend/worker: `docker.io/alliehere/lircbrary-backend:latest`
+- Frontend: `docker.io/alliehere/lircbrary-frontend:latest`
+If you need a private repo, `docker login` first and adjust tags as needed.
 
 ## Configuration
 Env vars (see `.env.example`):
