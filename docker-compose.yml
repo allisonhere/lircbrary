@@ -18,8 +18,9 @@ services:
       - ./data:/data
       - /home/allie/temp:/temp
       - /home/allie/downloads:/downloads
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
-    network_mode: host
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
 
   worker:
     build:
@@ -41,6 +42,6 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
-      - VITE_API_URL=http://127.0.0.1:8001
+      - VITE_API_URL=http://localhost:8000
     ports:
       - "3000:3000"
