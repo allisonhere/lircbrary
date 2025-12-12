@@ -21,7 +21,7 @@ Web UI + backend to search `irc.highway.net/#ebooks`, queue DCC downloads, and f
 - From the repo root, run `docker-compose up --build -d`.
 - Open `http://<host>:3000` in a browser (API at `http://<host>:8000`). Logs land in the `data` volume and the download/library folders you configured.
 
-### Example docker-compose.yml (GHCR images)
+### Example docker-compose.yml (GHCR images, env baked in)
 ```yaml
 version: "3.9"
 
@@ -34,9 +34,20 @@ services:
 
   api:
     image: ghcr.io/allisonhere/lircbrary-backend:latest
-    env_file: .env
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - IRC_SERVER=irc.highway.net
+      - IRC_PORT=6667
+      - IRC_CHANNEL=#ebooks
+      - IRC_NICK=lircbrarybot
+      - IRC_REALNAME=lircbrary
+      - IRC_SSL=false
+      - IRC_SSL_VERIFY=true
+      - DOWNLOAD_DIR=/downloads
+      - LIBRARY_DIR=/downloads
+      - TEMP_DIR=/temp
+      - QUEUE_NAME=lircbrary-jobs
+      - CONFIG_FILE=/data/config.json
     volumes:
       - ./data:/data
       - /home/allie/temp:/temp
@@ -48,9 +59,20 @@ services:
   worker:
     image: ghcr.io/allisonhere/lircbrary-backend:latest
     command: ["python", "-m", "worker"]
-    env_file: .env
     environment:
       - REDIS_URL=redis://127.0.0.1:6379/0
+      - IRC_SERVER=irc.highway.net
+      - IRC_PORT=6667
+      - IRC_CHANNEL=#ebooks
+      - IRC_NICK=lircbrarybot
+      - IRC_REALNAME=lircbrary
+      - IRC_SSL=false
+      - IRC_SSL_VERIFY=true
+      - DOWNLOAD_DIR=/downloads
+      - LIBRARY_DIR=/downloads
+      - TEMP_DIR=/temp
+      - QUEUE_NAME=lircbrary-jobs
+      - CONFIG_FILE=/data/config.json
     volumes:
       - ./data:/data
       - /home/allie/temp:/temp
