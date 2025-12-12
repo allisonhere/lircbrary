@@ -71,6 +71,13 @@ services:
       - "3000:3000"
 ```
 
+### Prebuilt images (GHCR)
+CI pushes images to GitHub Container Registry on every `master` push:
+- Backend/worker: `ghcr.io/allisonhere/lircbrary-backend:latest` (also `:sha-<commit>`)
+- Frontend: `ghcr.io/allisonhere/lircbrary-frontend:latest` (also `:sha-<commit>`)
+
+If you prefer pulling instead of building, swap the `build` sections in the compose example with `image: ghcr.io/allisonhere/lircbrary-backend:latest` for `api`/`worker` and `image: ghcr.io/allisonhere/lircbrary-frontend:latest` for `frontend`. If the GHCR package is private, `docker login ghcr.io -u <github-username> -p <PAT-with-packages-scope>` first.
+
 ## Configuration
 Env vars (see `.env.example`):
 - `IRC_SERVER`, `IRC_PORT`, `IRC_CHANNEL`, `IRC_NICK`, `IRC_REALNAME`
