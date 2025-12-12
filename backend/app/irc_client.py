@@ -375,6 +375,9 @@ class IrcClient:
         elapsed = time.time() - start
         append_log(f"Saved DCC to {dest} ({total} bytes in {elapsed:.2f}s)")
 
+    def resolve_path(self, path_str: str) -> Path:
+        return Path(path_str).expanduser().resolve()
+
     def _probe(self, host: str, port: int) -> bool:
         try:
             with socket.create_connection((host, port), timeout=5):
