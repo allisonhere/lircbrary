@@ -7,6 +7,7 @@
   --input-bg: #f9f6ff;
   --shadow: 0 10px 30px rgba(70, 20, 110, 0.08);
   --accent: linear-gradient(135deg, #7c3aed, #a855f7);
+  --accent-solid: #7c3aed;
 }
 
 [data-theme="dark"] {
@@ -18,6 +19,7 @@
   --input-bg: #151025;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   --accent: linear-gradient(135deg, #a855f7, #c084fc);
+  --accent-solid: #a855f7;
 }
 
 :root {
@@ -158,8 +160,8 @@ button:disabled {
 
 button.ghost {
   background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
+  color: var(--accent-solid);
+  border: 1px solid var(--accent-solid);
   box-shadow: none;
 }
 
@@ -292,4 +294,80 @@ button.ghost {
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 640px) {
+  .page {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .title h1 {
+    font-size: 24px;
+  }
+
+  .topbar {
+    margin-bottom: 8px;
+  }
+
+  /* Make inputs stack nicely */
+  .inputs {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stack result rows for easier reading */
+  .result-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .result-meta {
+    gap: 6px;
+  }
+
+  /* Make the Request button big and easy to tap */
+  .result-row button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  /* Fix Toast position on mobile */
+  .toast-container {
+    left: 16px;
+    right: 16px;
+    bottom: 24px;
+    width: auto;
+  }
+
+  .toast {
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* Prevent iOS zoom on inputs */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* Log View Responsiveness */
+  .log-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .log-header .topbar-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .log-header .topbar-actions button {
+    width: 100%;
+    padding: 10px;
+    font-size: 13px;
+  }
 }
