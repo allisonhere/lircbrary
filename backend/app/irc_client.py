@@ -187,7 +187,26 @@ class IrcClient:
             raise IrcSearchError(f"Join timeout for {target}")
 
     def _parse_search_line(self, line: str) -> Optional[SearchResult]:
-        # Heuristic parse, adjust to your bot's format.
+        # Support for !BotName Filename.epub format
+        # Regex matches strings starting with !
+        # We capture everything up to "::INFO::" or end of string as the trigger.
+        m = re.search(r"(?P<trigger>![^\s]+\s+.*?)(\s+::INFO::|$)", line, re.IGNORECASE)
+        if m:
+            trigger = m.group("trigger").strip()
+            # Extract bot name (first word after !)
+            bot_match = re.match(r"^!([^\s]+)", trigger)
+            bot_name = bot_match.group(1) if bot_match else None
+            # Title is the rest
+            title = trigger[len(bot_name) + 2 :].strip() if bot_name else trigger
+            return SearchResult(
+                id=trigger,
+                title=title,
+                description=line.strip(),
+                bot=bot_name,
+                size_bytes=None,
+            )
+
+        # Fallback to old heuristic
         m = re.search(r"(?P<id>\d+).*?(?P<title>[^\|]+)", line)
         if not m:
             return None
@@ -241,8 +260,7 @@ class IrcClient:
                     filename, host, port, size = self._parse_dcc_send(payload)
                     dest = temp_dir / filename
                     append_log(f"Accepting search DCC {filename} from {sender} at {host}:{port} size {size or 'unknown'}")
-                    if not self._probe(host, port):
-                        append_log(f"DCC probe failed to {host}:{port}")
+                    # Direct connect; probing can consume the single-use DCC socket.
                     self._receive_dcc(host, port, size, dest)
                     dcc_file = dest
                     append_log(f"Saved search results to {dest}")
@@ -310,9 +328,19 @@ class IrcClient:
         server.add_global_handler("privmsg", on_privmsg)
         server.add_global_handler("ctcp", on_ctcp)
 
-        self._join_and_wait(server, reactor)
+        # _connect_and_join already joined the channel.
+        # self._join_and_wait(server, reactor)  <-- REDUNDANT and causes timeout
+        
         append_log(f"DOWNLOAD {result_id} via {bot or 'unknown'}")
-        server.privmsg(target, self.download_command.format(id=result_id))
+        
+        # Check if result_id is a direct command (starts with !)
+        if result_id.startswith("!"):
+            # Send the trigger command directly to the channel
+            server.privmsg(target, result_id)
+        else:
+            # Legacy/Mock behavior
+            server.privmsg(target, self.download_command.format(id=result_id))
+            
         start = time.time()
         while not done and time.time() - start < self.dcc_timeout:
             reactor.process_once(timeout=0.2)
@@ -329,17 +357,36 @@ class IrcClient:
 
     def _parse_dcc_send(self, payload: str) -> Tuple[str, str, int, Optional[int]]:
         # Payload example: "DCC SEND filename ip port size"
-        parts = payload.split()
-        if len(parts) < 5:
-            raise IrcDownloadError(f"Invalid DCC payload: {payload}")
-        filename = parts[2].strip('"')
-        ip_raw = int(parts[3])
+        # Regex to find the last 2 or 3 numbers (ip, port, optional size)
+        # and capture everything before them as the filename.
+        # Pattern: DCC SEND <filename> <ip> <port> [<size>]
+        match = re.search(r"DCC SEND\s+(?P<filename>.+?)\s+(?P<ip>\d+)\s+(?P<port>\d+)(?:\s+(?P<size>\d+))?$", payload, re.IGNORECASE)
+        if not match:
+            # Fallback for simple split if regex fails (unlikely if format is standard)
+            parts = payload.split()
+            if len(parts) < 5:
+                raise IrcDownloadError(f"Invalid DCC payload: {payload}")
+            filename = parts[2].strip('"')
+            ip_raw = int(parts[3])
+            host = str(ipaddress.IPv4Address(ip_raw))
+            port = int(parts[4])
+            size = int(parts[5]) if len(parts) > 5 else None
+            return filename, host, port, size
+
+        filename = match.group("filename").strip()
+        # Remove surrounding quotes if present
+        if filename.startswith('"') and filename.endswith('"'):
+            filename = filename[1:-1]
+        
+        ip_raw = int(match.group("ip"))
         host = str(ipaddress.IPv4Address(ip_raw))
-        port = int(parts[4])
-        size = int(parts[5]) if len(parts) > 5 else None
+        port = int(match.group("port"))
+        size = int(match.group("size")) if match.group("size") else None
+        
         max_size = self.cfg.max_download_bytes
         if max_size and size and size > max_size:
             raise IrcDownloadError(f"File too large: {size} bytes")
+            
         return filename, host, port, size
 
     def _parse_search_results_file(self, path: Path, results: List[SearchResult]) -> None:
@@ -374,7 +421,7 @@ class IrcClient:
                 while True:
                     chunk = sock.recv(4096)
                     if not chunk:
-                        append_log("DCC recv got EOF")
+                        append_log(f"DCC recv got EOF after {total} bytes")
                         break
                     fh.write(chunk)
                     total += len(chunk)

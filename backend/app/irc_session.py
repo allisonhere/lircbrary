@@ -115,8 +115,7 @@ class IrcSession:
                     if dest:
                         dest_path = self.client.resolve_path(dest) / filename
                     append_log(f"Accepting search DCC {filename} from {sender} at {host}:{port} size {size or 'unknown'}")
-                    if not self.client._probe(host, port):
-                        append_log(f"DCC probe failed to {host}:{port}")
+                    # Direct connect; probing can consume the single-use DCC socket.
                     if dest_path:
                         self.client._receive_dcc(host, port, size, dest_path)
                         append_log(f"Saved search results to {dest_path}")

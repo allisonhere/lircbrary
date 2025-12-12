@@ -64,7 +64,7 @@ class ConfigData(BaseModel):
     library_dir: str
     temp_dir: str
     max_download_bytes: Optional[int] = None
-    allowed_bots: List[str] = []
+    allowed_bots: Optional[List[str]] = None
     irc_server: Optional[str] = None
     irc_port: Optional[int] = None
     irc_ssl: Optional[bool] = None

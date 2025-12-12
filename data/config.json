@@ -1,17 +1,15 @@
 {
-  "download_dir": "/home/allie/downloads",
-  "library_dir": "/home/allie/temp/",
-  "temp_dir": "/home/allie/temp/",
+  "download_dir": "/downloads",
+  "library_dir": "/downloads",
+  "temp_dir": "/temp",
   "max_download_bytes": null,
-  "allowed_bots": [
-    "Search"
-  ],
+  "allowed_bots": null,
   "irc_server": "irc.irchighway.net",
   "irc_port": 6667,
   "irc_ssl": false,
   "irc_ssl_verify": false,
   "irc_channel": "#ebooks",
-  "irc_nick": "mrb54329",
-  "irc_realname": "mrb54329",
+  "irc_nick": "tchybutt",
+  "irc_realname": "itchybutt",
   "theme": "dark"
 }

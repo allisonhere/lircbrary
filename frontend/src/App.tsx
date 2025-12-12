@@ -15,11 +15,18 @@ type JobStatus = "queued" | "started" | "finished" | "failed";
 type JobInfo = {
   id: string;
   status: JobStatus;
+  title?: string;
   enqueued_at?: string;
   started_at?: string;
   ended_at?: string;
   error?: string;
   result_path?: string;
+};
+
+type Toast = {
+  id: number;
+  message: string;
+  type: "info" | "success" | "error";
 };
 
 type ConfigData = {
@@ -56,7 +63,7 @@ export default function App() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [jobs, setJobs] = useState<Record<string, JobInfo>>({});
-  const [view, setView] = useState<"search" | "config">("search");
+  const [view, setView] = useState<"search" | "config" | "log">("search");
   const [config, setConfig] = useState<ConfigData | null>(null);
   const [configSaving, setConfigSaving] = useState(false);
   const [allowedBots, setAllowedBots] = useState("");
@@ -64,6 +71,15 @@ export default function App() {
   const [ircLog, setIrcLog] = useState<string[]>([]);
   const [ircStatus, setIrcStatus] = useState<{ connected: boolean; error?: string | null }>({ connected: false, error: null });
   const [ircBusy, setIrcBusy] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = (message: string, type: "info" | "success" | "error" = "info") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 5000);
+  };
 
   const pollJobs = useCallback(async () => {
     const jobIds = Object.keys(jobs);
@@ -72,7 +88,14 @@ export default function App() {
     for (const id of jobIds) {
       try {
         const { data } = await api.get<JobInfo>(`/jobs/${id}`);
-        updates[id] = data;
+        const prev = jobs[id];
+        if (prev && prev.status !== data.status) {
+           const title = prev.title || "Download";
+           if (data.status === "started") addToast(`Started: ${title}`, "info");
+           if (data.status === "finished") addToast(`Finished: ${title}`, "success");
+           if (data.status === "failed") addToast(`Failed: ${title}`, "error");
+        }
+        updates[id] = { ...data, title: prev.title };
       } catch (err) {
         console.error("job poll failed", err);
       }
@@ -186,17 +209,20 @@ export default function App() {
 
   const startDownload = async (result: SearchResult) => {
     try {
+      addToast(`Requesting: ${result.title}`, "info");
       const { data } = await api.post<{ job_id: string }>("/download", {
         result_id: result.id,
         bot: result.bot,
       });
-      setJobs((prev) => ({ ...prev, [data.job_id]: { id: data.job_id, status: "queued" } }));
+      setJobs((prev) => ({ ...prev, [data.job_id]: { id: data.job_id, status: "queued", title: result.title } }));
     } catch (err) {
       console.error(err);
+      addToast("Failed to request download", "error");
     }
   };
 
-  const activeJobs = useMemo(() => Object.values(jobs).sort((a, b) => (b.enqueued_at || "").localeCompare(a.enqueued_at || "")), [jobs]);
+  const activeJobs = useMemo(() => Object.values(jobs).sort((a, b) => (b.enqueued_at || "").localeCompare(a.enqueued_at || "")),
+ [jobs]);
 
   const saveConfig = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,6 +250,14 @@ export default function App() {
 
   return (
     <div className="page">
+      <div className="toast-container">
+        {toasts.map((t) => (
+          <div key={t.id} className={`toast toast-${t.type}`}>
+            {t.message}
+          </div>
+        ))}
+      </div>
+
       <div className="topbar">
         <div className="title">
           <h1>lircbrary</h1>
@@ -273,8 +307,8 @@ export default function App() {
           <div className="card">
             <h3>Results</h3>
             <div className="results">
-              {results.map((r) => (
-                <div className="result-row" key={r.id}>
+              {results.map((r, idx) => (
+                <div className="result-row" key={`${r.id}-${idx}`}>
                   <div className="result-meta">
                     <div className="result-title">{r.title}</div>
                     <div className="result-desc">
@@ -294,7 +328,7 @@ export default function App() {
               {activeJobs.map((j) => (
                 <div className="status-row" key={j.id}>
                   <div>
-                    <strong>{j.status.toUpperCase()}</strong> {j.result_path && `→ ${j.result_path}`}
+                    <strong>{j.status.toUpperCase()}</strong> {j.title || j.id}
                   </div>
                   <div>{j.error ? j.error.split("\n")[0] : ""}</div>
                 </div>
@@ -336,7 +370,7 @@ export default function App() {
               </label>
               <label>
                 IRC server
-                <input value={config.irc_server || ""} onChange={(e) => setConfig({ ...config, irc_server: e.target.value })} />
+                <input value={config.irc_server || ""} onChange={(e) => setConfig({ ...config, irc_server: e.target.value }) } />
               </label>
               <label>
                 IRC port
@@ -366,15 +400,15 @@ export default function App() {
               </label>
               <label>
                 IRC channel
-                <input value={config.irc_channel || ""} onChange={(e) => setConfig({ ...config, irc_channel: e.target.value })} />
+                <input value={config.irc_channel || ""} onChange={(e) => setConfig({ ...config, irc_channel: e.target.value }) } />
               </label>
               <label>
                 IRC nick
-                <input value={config.irc_nick || ""} onChange={(e) => setConfig({ ...config, irc_nick: e.target.value })} />
+                <input value={config.irc_nick || ""} onChange={(e) => setConfig({ ...config, irc_nick: e.target.value }) } />
               </label>
               <label>
                 IRC realname
-                <input value={config.irc_realname || ""} onChange={(e) => setConfig({ ...config, irc_realname: e.target.value })} />
+                <input value={config.irc_realname || ""} onChange={(e) => setConfig({ ...config, irc_realname: e.target.value }) } />
               </label>
             </div>
             <div className="form-row">
