@@ -12,10 +12,13 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     env_file: .env
+    environment:
+      - REDIS_URL=redis://127.0.0.1:6379/0
     volumes:
       - ./data:/data
-    ports:
-      - "8000:8000"
+      - /home/allie/temp:/temp
+      - /home/allie/downloads:/downloads
+    network_mode: host
 
   worker:
     build:
@@ -28,6 +31,8 @@ services:
       - REDIS_URL=redis://127.0.0.1:6379/0
     volumes:
       - ./data:/data
+      - /home/allie/temp:/temp
+      - /home/allie/downloads:/downloads
     network_mode: host
 
   frontend:
