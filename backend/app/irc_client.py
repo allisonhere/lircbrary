@@ -44,14 +44,22 @@ class IrcClient:
         self.download_command = "@download {id}"
 
     def sanitize_query(self, query: str, author: Optional[str] = None) -> str:
-        q = (query or "").strip()
-        # drop a trailing extension like .epub/.pdf/etc.
+        import unicodedata
+
+        def strip_accents(text: str) -> str:
+            return (
+                unicodedata.normalize("NFKD", text)
+                .encode("ascii", "ignore")
+                .decode("ascii", errors="ignore")
+            )
+
+        q = strip_accents((query or "").strip())
         q = re.sub(r"\.[a-zA-Z0-9]{1,5}$", "", q)
-        # remove punctuation that the bot may treat as syntax errors
-        q = re.sub(r"[^\\w\\s'\\-]", " ", q)
+        q = re.sub(r"[^a-zA-Z0-9\s'\-]", " ", q)
         if author:
-            q = f"{q} {author}".strip()
-        q = re.sub(r"\\s+", " ", q).strip()
+            a = strip_accents(author)
+            q = f"{q} {a}".strip()
+        q = re.sub(r"\s+", " ", q).strip().lower()
         return q
 
     def _connect(self, nick_override: Optional[str] = None) -> Tuple[irc.client.Reactor, irc.client.ServerConnection]:
