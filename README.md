@@ -21,6 +21,56 @@ Web UI + backend to search `irc.highway.net/#ebooks`, queue DCC downloads, and f
 - From the repo root, run `docker-compose up --build -d`.
 - Open `http://<host>:3000` in a browser (API at `http://<host>:8000`). Logs land in the `data` volume and the download/library folders you configured.
 
+### Example docker-compose.yml
+```yaml
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./data:/data
+      - /home/allie/temp:/temp
+      - /home/allie/downloads:/downloads
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["python", "-m", "worker"]
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://127.0.0.1:6379/0
+    volumes:
+      - ./data:/data
+      - /home/allie/temp:/temp
+      - /home/allie/downloads:/downloads
+    network_mode: host
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+```
+
 ## Configuration
 Env vars (see `.env.example`):
 - `IRC_SERVER`, `IRC_PORT`, `IRC_CHANNEL`, `IRC_NICK`, `IRC_REALNAME`
