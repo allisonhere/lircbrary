@@ -65,6 +65,6 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
-      - VITE_API_URL=http://localhost:8800
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8800}
     ports:
-      - "3000:3000"
+      - "3300:3000"
