@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  DOCKER_HUB_ORG: allisonhere
+  DOCKER_HUB_ORG: alliehere
 
 jobs:
   build-and-push:
